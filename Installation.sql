@@ -1005,13 +1005,13 @@ RAISERROR('0.13 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
 IF OBJECT_ID('[App].[usp_ApplicationCleanup]') IS NULL
 BEGIN
 
-	RAISERROR('14.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('14.0 - Creating usp_ApplicationCleanup',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_ApplicationCleanup] AS RETURN 0;')
 END
 GO
 
-RAISERROR('14.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('14.1 - Amending usp_ApplicationCleanup',0,1) WITH NOWAIT
 
 GO
 
@@ -1097,13 +1097,13 @@ GO
 IF OBJECT_ID('[App].[usp_Cleanup_Job_History]') IS NULL
 BEGIN
 
-	RAISERROR('15.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('15.0 - Creating usp_Cleanup_Job_History',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_Cleanup_Job_History] AS RETURN 0;')
 END
 GO
 
-RAISERROR('15.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('15.1 - Amending usp_Cleanup_Job_History',0,1) WITH NOWAIT
 
 GO
 
@@ -1273,13 +1273,13 @@ GO
 IF OBJECT_ID('[App].[usp_DatabaseFileInventory_CALC_Insert]') IS NULL
 BEGIN
 
-RAISERROR('16.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('16.0 - Creating usp_DatabaseFileInventory_CALC_Insert',0,1) WITH NOWAIT
 
 EXEC ('CREATE PROCEDURE [App].[usp_DatabaseFileInventory_CALC_Insert] AS RETURN 0;')
 END
 GO
 
-RAISERROR('16.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('16.1 - Amending usp_DatabaseFileInventory_CALC_Insert',0,1) WITH NOWAIT
 
 GO
 
@@ -1359,13 +1359,13 @@ GO
 IF OBJECT_ID('[App].[usp_DatabaseInventory_CALC_Insert]') IS NULL
 BEGIN
 
-	RAISERROR('17.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('17.0 - Creating usp_DatabaseInventory_CALC_Insert',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_DatabaseInventory_CALC_Insert] AS RETURN 0;')
 END
 GO
 
-RAISERROR('17.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('17.1 - Amending usp_DatabaseInventory_CALC_Insert',0,1) WITH NOWAIT
 
 GO
 
@@ -1447,13 +1447,13 @@ GO
 
 IF OBJECT_ID('[App].[usp_DatabaseInventory_CALC_Master]') IS NULL
 BEGIN
-	RAISERROR('18.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('18.0 - Creating usp_DatabaseInventory_CALC_Master',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_DatabaseInventory_CALC_Master] AS RETURN 0;')
 END
 GO
 
-RAISERROR('18.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('18.1 - Amending usp_DatabaseInventory_CALC_Master',0,1) WITH NOWAIT
 
 GO
 
@@ -1501,13 +1501,13 @@ GO
 IF OBJECT_ID('[App].[usp_DatabaseSizeInventory_CALC_Insert]') IS NULL
 BEGIN
 
-	RAISERROR('19.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('19.0 - Creating usp_DatabaseSizeInventory_CALC_Insert',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_DatabaseSizeInventory_CALC_Insert] AS RETURN 0;')
 END
 GO
 
-RAISERROR('19.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('19.1 - Amending usp_DatabaseSizeInventory_CALC_Insert',0,1) WITH NOWAIT
 
 GO
 
@@ -1572,13 +1572,13 @@ GO
 
 IF OBJECT_ID('[App].[usp_DatabaseSizeInventory_CALC_Master]') IS NULL
 BEGIN
-	RAISERROR('20.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('20.0 - Creating usp_DatabaseSizeInventory_CALC_Master',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_DatabaseSizeInventory_CALC_Master] AS RETURN 0;')
 END
 GO
 
-RAISERROR('20.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('20.1 - Amending usp_DatabaseSizeInventory_CALC_Master',0,1) WITH NOWAIT
 
 GO
 
@@ -1628,13 +1628,13 @@ GO
 IF OBJECT_ID('[App].[usp_InsertRunLog]') IS NULL
 BEGIN
 
-	RAISERROR('21.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('21.0 - Creating usp_InsertRunLog',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_InsertRunLog] AS RETURN 0;')
 END
 GO
 
-RAISERROR('21.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('21.1 - Amending usp_InsertRunLog',0,1) WITH NOWAIT
 
 GO
 
@@ -1668,13 +1668,13 @@ GO
 IF OBJECT_ID('[App].[usp_LoginInventory_CALC_Insert]') IS NULL
 BEGIN
 
-	RAISERROR('22.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('22.0 - Creating usp_LoginInventory_CALC_Insert',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_LoginInventory_CALC_Insert] AS RETURN 0;')
 END
 GO
 
-RAISERROR('22.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('22.1 - Amending usp_LoginInventory_CALC_Insert',0,1) WITH NOWAIT
 
 GO 
 
@@ -1757,13 +1757,13 @@ GO
 IF OBJECT_ID('[App].[usp_LoginInventory_CALC_Master]') IS NULL
 BEGIN
 
-	RAISERROR('23.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('23.0 - Creating usp_LoginInventory_CALC_Master',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_LoginInventory_CALC_Master] AS RETURN 0;')
 END
 GO
 
-RAISERROR('23.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('23.1 - Amending usp_LoginInventory_CALC_Master',0,1) WITH NOWAIT
 
 GO
 
@@ -1814,13 +1814,13 @@ GO
 IF OBJECT_ID('[App].[usp_ObjectInventory_CALC_Insert]') IS NULL
 BEGIN
 	
-	RAISERROR('24.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('24.0 - Creating usp_ObjectInventory_CALC_Insert',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_ObjectInventory_CALC_Insert] AS RETURN 0;')
 END
 GO
 
-RAISERROR('24.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('24.1 - Amending usp_ObjectInventory_CALC_Insert',0,1) WITH NOWAIT
 
 GO
 
@@ -1897,13 +1897,13 @@ GO
 IF OBJECT_ID('[App].[usp_ObjectInventory_CALC_Master]') IS NULL
 BEGIN
 
-	RAISERROR('25.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('25.0 - Creating usp_ObjectInventory_CALC_Master',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_ObjectInventory_CALC_Master] AS RETURN 0;')
 END
 GO
 
-RAISERROR('25.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('25.1 - Amending usp_ObjectInventory_CALC_Master',0,1) WITH NOWAIT
 
 GO
 
@@ -1953,13 +1953,13 @@ GO
 IF OBJECT_ID('[App].[usp_RunInventory]') IS NULL
 BEGIN
 
-RAISERROR('26.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('26.0 - Creating usp_RunInventory',0,1) WITH NOWAIT
 
 EXEC ('CREATE PROCEDURE [App].[usp_RunInventory] AS RETURN 0;')
 END
 GO
 
-RAISERROR('26.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('26.1 - Amending usp_RunInventory',0,1) WITH NOWAIT
 
 GO
 
@@ -2041,13 +2041,13 @@ GO
 IF OBJECT_ID('[App].[usp_SQLJobInventory_CALC_Insert]') IS NULL
 BEGIN
 
-RAISERROR('27.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('27.0 - Creating usp_SQLJobInventory_CALC_Insert',0,1) WITH NOWAIT
 
 EXEC ('CREATE PROCEDURE [App].[usp_SQLJobInventory_CALC_Insert] AS RETURN 0;')
 END
 GO
 
-RAISERROR('27.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('27.1 - Amending usp_SQLJobInventory_CALC_Insert',0,1) WITH NOWAIT
 
 GO
 
@@ -2144,13 +2144,13 @@ GO
 IF OBJECT_ID('[App].[usp_SQLJobInventory_CALC_Master]') IS NULL
 BEGIN
 
-RAISERROR('28.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('28.0 - Creating usp_SQLJobInventory_CALC_Master',0,1) WITH NOWAIT
 
 EXEC ('CREATE PROCEDURE [App].[usp_SQLJobInventory_CALC_Master] AS RETURN 0;')
 END
 GO
 
-RAISERROR('28.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('28.1 - Amending usp_SQLJobInventory_CALC_Master',0,1) WITH NOWAIT
 
 GO
 
@@ -2200,13 +2200,13 @@ GO
 IF OBJECT_ID('[App].[usp_SQLJobInventory_CALC_Master]') IS NULL
 BEGIN
 
-RAISERROR('29.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('29.0 - Creating usp_SQLJobInventory_CALC_Master',0,1) WITH NOWAIT
 
 EXEC ('CREATE PROCEDURE [App].[usp_SQLJobInventory_CALC_Master] AS RETURN 0;')
 END
 GO
 
-RAISERROR('29.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('29.1 - Amending usp_SQLJobInventory_CALC_Master',0,1) WITH NOWAIT
 
 GO
 
@@ -2256,13 +2256,13 @@ GO
 IF OBJECT_ID('[App].[usp_SysAdminInventory_CALC_Insert]') IS NULL
 BEGIN
 
-	RAISERROR('30.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('30.0 - Creating usp_SysAdminInventory_CALC_Insert',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_SysAdminInventory_CALC_Insert] AS RETURN 0;')
 END
 GO
 
-RAISERROR('30.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('30.1 - Amending usp_SysAdminInventory_CALC_Insert',0,1) WITH NOWAIT
 
 GO
 
@@ -2337,13 +2337,13 @@ GO
 IF OBJECT_ID('[App].[usp_SysAdminInventory_CALC_Master]') IS NULL
 BEGIN
 
-	RAISERROR('31.0 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+	RAISERROR('31.0 - Creating usp_SysAdminInventory_CALC_Master',0,1) WITH NOWAIT
 
 	EXEC ('CREATE PROCEDURE [App].[usp_SysAdminInventory_CALC_Master] AS RETURN 0;')
 END
 GO
 
-RAISERROR('31.1 - Creating/Upgrading Stored Procedures',0,1) WITH NOWAIT
+RAISERROR('31.1 - Amending usp_SysAdminInventory_CALC_Master',0,1) WITH NOWAIT
 
 GO
 
