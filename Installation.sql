@@ -730,6 +730,66 @@ CREATE TABLE [Inventory].[SysAdmins]
 ALTER TABLE [Inventory].[SysAdmins] ADD CONSTRAINT PK_SysAdmins_ID PRIMARY KEY (ID)
 END
 
+RAISERROR('9.0 - Creating Configuration tables',0,1) WITH NOWAIT
+
+RAISERROR('9.1 - Creating [Config].[Inventory] table',0,1) WITH NOWAIT
+
+CREATE TABLE [Config].[Inventory]
+(
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[StoredProcedure] [nvarchar](255) NULL,
+	[Description] [varchar](255) NULL,
+	[RunOrder] [int] NULL,
+	[WeeklyUpdates] [varchar](20) NULL,
+	[Active] [bit] NULL DEFAULT 1
+)
+
+ALTER TABLE [Config].[Inventory] ADD CONSTRAINT [PK_Inventory_ID] PRIMARY KEY (ID)
+
+RAISERROR('9.2 - Creating [Config].[AppConfig] table',0,1) WITH NOWAIT
+
+CREATE TABLE [Config].[AppConfig]
+(
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[ConfigName] [varchar](100) NULL,
+	[ConfigDescription] [varchar](500) NULL,
+	[StringValue] [varchar](200) NULL,
+	[INTValue] [int] NULL,
+	[BoolValue] [bit] NULL,
+	[DecimalValue] [decimal](16, 2) NULL,
+	[DateValue] [date] NULL,
+	[DateTimeValue] [datetime] NULL,
+	[Active] [bit] NULL DEFAULT 1
+) 
+
+ALTER TABLE [Config].[AppConfig] ADD CONSTRAINT [PK_AppConfig_ID] PRIMARY KEY (ID)
+
+RAISERROR('9.3 - Inserting default configuration into [Config].[Inventory]',0,1) WITH NOWAIT
+
+SET IDENTITY_INSERT [Config].[Inventory] ON
+
+INSERT [Config].[Inventory] ([ID], [StoredProcedure], [Description], [RunOrder], [WeeklyUpdates], [Active]) 
+VALUES 
+(1, N'[App].[usp_DatabaseInventory_CALC_Master]', NULL, 1, N'1|1|1|1|1|1|1', 1),
+(2, N'[App].[usp_DatabaseFileInventory_CALC_Insert]', NULL, 2, N'1|1|1|1|1|1|1', 1),
+(3, N'[App].[usp_DatabaseSizeInventory_CALC_Master]', NULL, 3, N'1|1|1|1|1|1|1', 1),
+(4, N'[App].[usp_LoginInventory_CALC_Master]', NULL, 4, N'1|1|1|1|1|1|1', 1),
+(5, N'[App].[usp_ObjectInventory_CALC_Master]', NULL, 5, N'1|1|1|1|1|1|1', 1),
+(6, N'[App].[usp_SQLJobInventory_CALC_Master]', NULL, 6, N'1|1|1|1|1|1|1', 1),
+(7, N'[App].[usp_SysAdminInventory_CALC_Master]', NULL, 7, N'1|1|1|1|1|1|1', 1),
+(8, N'[App].[usp_ApplicationCleanup]', NULL, 8, N'1|1|1|1|1|1|1', 1),
+(9, N'[App].[usp_Cleanup_Job_History]', NULL, 9, N'1|1|1|1|1|1|1', 1)
+
+SET IDENTITY_INSERT [Config].[Inventory] OFF
+
+RAISERROR('9.3 - Inserting default configuration into [Config].[AppConfig]',0,1) WITH NOWAIT
+
+SET IDENTITY_INSERT [Config].[AppConfig] ON
+INSERT [Config].[AppConfig] ([ID], [ConfigName], [ConfigDescription], [StringValue], [INTValue], [BoolValue], [DecimalValue], [DateValue], [DateTimeValue], [Active]) 
+VALUES (1, N'Clean Up', N'The amout of days to keep records for', N'', -30, NULL, NULL, NULL, NULL, 1)
+SET IDENTITY_INSERT [Config].[AppConfig] OFF
+
+
 /* Table Upgrade Complete */
 
 RAISERROR('0.11 - Tables Created/Upgraded',0,1) WITH NOWAIT
