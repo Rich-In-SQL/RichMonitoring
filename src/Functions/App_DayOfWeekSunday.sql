@@ -1,0 +1,17 @@
+﻿CREATE FUNCTION App.DayOfWeekSunday
+(
+	@Date DATETIME
+)
+RETURNS INT
+
+AS
+
+BEGIN 
+	DECLARE @DOW INT
+
+	SET @DOW = DATEPART(DW,@Date)
+	SET @Date = (@DOW + @@DATEFIRST - 1) % 7
+
+	RETURN @DOW + 1
+
+END
