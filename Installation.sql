@@ -22,8 +22,8 @@ DECLARE
 	@VersionDate DATE,
 	@Command nvarchar(MAX)
 
-SET @Version = '0.2'
-SET @VersionDate = '20220219'
+SET @Version = '0.3'
+SET @VersionDate = '20220320'
 
 /*Create Inventory Schema */
 IF SCHEMA_ID('Inventory') IS NULL
@@ -778,7 +778,8 @@ VALUES
 (6, N'[App].[usp_SQLJobInventory_CALC_Master]', NULL, 6, N'1|1|1|1|1|1|1', 1),
 (7, N'[App].[usp_SysAdminInventory_CALC_Master]', NULL, 7, N'1|1|1|1|1|1|1', 1),
 (8, N'[App].[usp_ApplicationCleanup]', NULL, 8, N'1|1|1|1|1|1|1', 1),
-(9, N'[App].[usp_Cleanup_Job_History]', NULL, 9, N'1|1|1|1|1|1|1', 1)
+(9, N'[App].[usp_Cleanup_Job_History]', NULL, 9, N'1|1|1|1|1|1|1', 1),
+(10,'[App].[usp_DatabaseInventory_CALC_Master]',10,'1|1|1|1|1|1|1',1)
 
 SET IDENTITY_INSERT [Config].[Inventory] OFF
 
@@ -789,6 +790,77 @@ INSERT [Config].[AppConfig] ([ID], [ConfigName], [ConfigDescription], [StringVal
 VALUES (1, N'Clean Up', N'The amout of days to keep records for', N'', -30, NULL, NULL, NULL, NULL, 1)
 SET IDENTITY_INSERT [Config].[AppConfig] OFF
 
+/* Sys Configurations */
+
+/* [Inventory].[SysConfigurations] */
+
+IF OBJECT_ID('[Inventory].[SysConfigurations]') IS NOT NULL
+BEGIN
+
+RAISERROR('10.0 - SysConfigurations already exists',0,1) WITH NOWAIT
+RAISERROR('10.1 - Backing up existing SysConfigurations data into SysConfigurations_OldVersion',0,1)
+
+SELECT * INTO Inventory.SysConfigurations_OldVersion FROM [Inventory].[SysConfigurations]
+
+RAISERROR('10.2 - Dropping existing SysConfigurations table',0,1) WITH NOWAIT
+
+DROP TABLE [Inventory].[SysConfigurations]
+
+RAISERROR('10.3 - Creating SysConfigurations table',0,1) WITH NOWAIT
+
+CREATE TABLE [Inventory].[sysconfigurations]
+(
+    ID INT IDENTITY(1,1) NOT NULL,
+    CensusDate DATETIME,
+    Configuration_ID INT,
+    Name nvarchar(35),
+    value SQL_VARIANT,
+    [minimum] SQL_VARIANT, 
+    [maximum] SQL_VARIANT, 
+    [value_in_use] SQL_VARIANT, 
+    [description] nvarchar(255), 
+    [is_dynamic] BIT, 
+    [is_advanced] BIT
+)
+
+ALTER TABLE [Inventory].[sysconfigurations] ADD CONSTRAINT PK_sysconfigurations_ID PRIMARY KEY (ID)
+
+RAISERROR('10.4 - Moving Data From Backup table to production table',0,1) WITH NOWAIT
+
+INSERT INTO [Inventory].[sysconfigurations] ([CensusDate], [Configuration_ID], [Name], [value], [minimum], [maximum], [value_in_use], [description], [is_dynamic], [is_advanced])
+SELECT 
+[CensusDate], [Configuration_ID], [Name], [value], [minimum], [maximum], [value_in_use], [description], [is_dynamic], [is_advanced]
+FROM 
+Inventory.sysconfigurations
+
+RAISERROR('10.5 - Dropping SysConfigurations_OldVersion as no longer required',0,1) WITH NOWAIT
+
+DROP TABLE Inventory.sysconfigurations_OldVersion
+
+END
+ELSE
+BEGIN
+
+RAISERROR('10.0 - Creating SysConfigurations table',0,1) WITH NOWAIT
+
+CREATE TABLE [Inventory].[sysconfigurations]
+(
+    ID INT IDENTITY(1,1) NOT NULL,
+    CensusDate DATETIME,
+    Configuration_ID INT,
+    Name nvarchar(35),
+    value SQL_VARIANT,
+    [minimum] SQL_VARIANT, 
+    [maximum] SQL_VARIANT, 
+    [value_in_use] SQL_VARIANT, 
+    [description] nvarchar(255), 
+    [is_dynamic] BIT, 
+    [is_advanced] BIT
+)
+
+ALTER TABLE [Inventory].[sysconfigurations] ADD CONSTRAINT PK_sysconfigurations_ID PRIMARY KEY (ID)
+
+END
 
 /* Table Upgrade Complete */
 
@@ -2446,3 +2518,175 @@ BEGIN
 
 		END CATCH
 END
+------SYSCONFIG INSERT VIEW
+GO
+
+IF OBJECT_ID('[App].[vw_SysConfigurations_CALC_Loading]') IS NULL
+BEGIN
+
+	RAISERROR('32.0 - Creating vw_SysConfigurations_CALC_Loading',0,1) WITH NOWAIT
+
+	EXEC ('CREATE VIEW [App].[vw_SysConfigurations_CALC_Loading] AS SELECT '''' as v')
+END
+GO
+
+RAISERROR('32.1 - Amending vw_SysConfigurations_CALC_Loading',0,1) WITH NOWAIT
+
+GO
+
+ALTER VIEW [App].[vw_SysConfigurations_CALC_Loading]
+
+AS
+
+SELECT 
+	GETDATE() as CensusDate
+	,Configuration_ID
+	,[Name]
+	,[value]
+	,[minimum] 
+	,[maximum]
+	,[value_in_use] 
+	,[description] 
+	,[is_dynamic] 
+	,[is_advanced]
+FROM 
+	sys.configurations 
+------SYSCONFIG INSERT
+GO
+
+IF OBJECT_ID('[App].[usp_Sysconfigurations_CALC_Insert]') IS NULL
+BEGIN
+
+	RAISERROR('33.0 - Creating usp_Sysconfigurations_CALC_Insert',0,1) WITH NOWAIT
+
+	EXEC ('CREATE PROCEDURE [App].[usp_Sysconfigurations_CALC_Insert] AS RETURN 0;')
+END
+GO
+
+RAISERROR('33.1 - Amending usp_Sysconfigurations_CALC_Insert',0,1) WITH NOWAIT
+
+GO
+
+ALTER PROCEDURE [App].[usp_SysConfigurations_CALC_Insert]
+
+AS
+
+	SET NOCOUNT ON;
+
+	BEGIN
+
+		DECLARE @Me VARCHAR(64) = CONCAT(OBJECT_SCHEMA_NAME(@@PROCID), '.',OBJECT_NAME(@@PROCID))
+
+		BEGIN TRY
+			
+			BEGIN TRANSACTION
+
+				EXEC [App].[usp_InsertRunLog] @ProcedureName = @Me, @Action = 'Inserting Data'
+
+				INSERT INTO  [Inventory].[SysConfigurations]	
+				(
+					[CensusDate],
+					[Configuration_ID],
+					[Name],
+					[value],
+					[minimum], 
+					[maximum], 
+					[value_in_use], 
+					[description], 
+					[is_dynamic], 
+					[is_advanced]		
+				)
+				SELECT
+					[CensusDate], 
+					[Configuration_ID],
+					[Name],
+					[value],
+					[minimum], 
+					[maximum], 
+					[value_in_use], 
+					[description], 
+					[is_dynamic], 
+					[is_advanced]
+				FROM 
+					[App].[vw_SysConfigurations_CALC_Loading]
+
+				EXEC [App].[usp_InsertRunLog] @ProcedureName = @Me, @Action = 'Data Inserted'
+
+			COMMIT TRANSACTION
+
+			END TRY
+			BEGIN CATCH
+				IF @@TRANCOUNT > 0 
+				ROLLBACK TRANSACTION
+				EXEC [App].[usp_InsertRunLog] @ProcedureName = @Me, @Action = 'ERROR'
+
+				INSERT INTO App.SQL_Errors ([Username], [Error_Number], [ERROR_STATE], [ERROR_SEVERITY], [ERROR_LINE], [stored_Procedure], [ERROR_MESSAGE], [EventDate])
+			VALUES
+			  (
+			  SUSER_SNAME(),
+			   ERROR_NUMBER(),
+			   ERROR_STATE(),
+			   ERROR_SEVERITY(),
+			   ERROR_LINE(),
+			   ERROR_PROCEDURE(),
+			   ERROR_MESSAGE(),
+			   GETDATE()
+			   );
+
+			END CATCH
+	END
+------SYSCONFIG MASTER
+
+GO
+
+IF OBJECT_ID('[App].[usp_Sysconfigurations_CALC_Master]') IS NULL
+BEGIN
+
+	RAISERROR('34.0 - Creating usp_Sysconfigurations_CALC_Master',0,1) WITH NOWAIT
+
+	EXEC ('CREATE PROCEDURE [App].[usp_Sysconfigurations_CALC_Master] AS RETURN 0;')
+END
+GO
+
+RAISERROR('34.1 - Amending usp_Sysconfigurations_CALC_Master',0,1) WITH NOWAIT
+
+GO
+
+ALTER PROCEDURE [App].[usp_SysConfigurations_CALC_Master]
+
+AS
+	SET NOCOUNT ON;
+
+	BEGIN
+
+		DECLARE @Me VARCHAR(64) = CONCAT(OBJECT_SCHEMA_NAME(@@PROCID), '.',OBJECT_NAME(@@PROCID))
+
+		BEGIN TRY
+			
+			BEGIN TRANSACTION
+
+				EXEC [App].[usp_SysConfigurations_CALC_Insert]
+
+			COMMIT TRANSACTION
+
+			END TRY
+			BEGIN CATCH
+			IF @@TRANCOUNT > 0 
+			ROLLBACK TRANSACTION
+			EXEC [App].[usp_InsertRunLog] @ProcedureName = @Me, @Action = 'ERROR'
+
+			INSERT INTO App.SQL_Errors ([Username], [Error_Number], [ERROR_STATE], [ERROR_SEVERITY], [ERROR_LINE], [stored_Procedure], [ERROR_MESSAGE], [EventDate])
+			VALUES
+			  (
+			  SUSER_SNAME(),
+			   ERROR_NUMBER(),
+			   ERROR_STATE(),
+			   ERROR_SEVERITY(),
+			   ERROR_LINE(),
+			   ERROR_PROCEDURE(),
+			   ERROR_MESSAGE(),
+			   GETDATE()
+			   );
+
+			END CATCH
+	END
