@@ -152,24 +152,24 @@ DECLARE
 
 SET @JobOwner = SUSER_SNAME(0x01)
 
-SELECT @jobId = job_id FROM msdb.dbo.sysjobs WHERE (name = N'RICHMONITORING - RUN INVENTORY')
+SELECT @jobId = job_id FROM msdb.dbo.sysjobs WHERE (name = N'RichMonitoring - RUN INVENTORY')
 IF (@jobId IS NOT NULL)
 BEGIN
 
 	RAISERROR('0.9 - SQL Job Already Exists - Dropping & Creating',0,1) WITH NOWAIT
 
     EXECUTE msdb.dbo.sp_delete_job @jobId
-	EXECUTE msdb.dbo.sp_add_job @job_name = 'RICHMONITORING - RUN INVENTORY', @description = 'Runs the Inventory Soloution', @category_name = 'Data Collector', @owner_login_name = @JobOwner
-	EXECUTE msdb.dbo.sp_add_jobstep @job_name = 'RICHMONITORING - RUN INVENTORY', @step_name = 'Execute Inventory', @subsystem = 'TSQL', @command = 'EXEC [App].[usp_RunInventory]', @database_name = 'RichMonitoring'
-	EXECUTE msdb.dbo.sp_add_jobserver @job_name = 'RICHMONITORING - RUN INVENTORY'
+	EXECUTE msdb.dbo.sp_add_job @job_name = 'RichMonitoring - RUN INVENTORY', @description = 'Runs the Inventory Soloution', @category_name = 'Data Collector', @owner_login_name = @JobOwner
+	EXECUTE msdb.dbo.sp_add_jobstep @job_name = 'RichMonitoring - RUN INVENTORY', @step_name = 'Execute Inventory', @subsystem = 'TSQL', @command = 'EXEC [App].[usp_RunInventory]', @database_name = 'RichMonitoring'
+	EXECUTE msdb.dbo.sp_add_jobserver @job_name = 'RichMonitoring - RUN INVENTORY'
 END
 ELSE
 BEGIN
 	RAISERROR('0.9 - SQL Job Dosen''t Exist - Creating',0,1) WITH NOWAIT
 
-	EXECUTE msdb.dbo.sp_add_job @job_name = 'RICHMONITORING - RUN INVENTORY', @description = 'Runs the Inventory Soloution', @category_name = 'Data Collector', @owner_login_name = @JobOwner
-	EXECUTE msdb.dbo.sp_add_jobstep @job_name = 'RICHMONITORING - RUN INVENTORY', @step_name = 'Execute Inventory', @subsystem = 'TSQL', @command = 'EXEC [App].[usp_RunInventory]', @database_name = 'RichMonitoring'
-	EXECUTE msdb.dbo.sp_add_jobserver @job_name = 'RICHMONITORING - RUN INVENTORY'
+	EXECUTE msdb.dbo.sp_add_job @job_name = 'RichMonitoring - RUN INVENTORY', @description = 'Runs the Inventory Soloution', @category_name = 'Data Collector', @owner_login_name = @JobOwner
+	EXECUTE msdb.dbo.sp_add_jobstep @job_name = 'RichMonitoring - RUN INVENTORY', @step_name = 'Execute Inventory', @subsystem = 'TSQL', @command = 'EXEC [App].[usp_RunInventory]', @database_name = 'RichMonitoring'
+	EXECUTE msdb.dbo.sp_add_jobserver @job_name = 'RichMonitoring - RUN INVENTORY'
 END
 
 /* If the soloution is already installed, perform an upgrade */
@@ -779,7 +779,8 @@ VALUES
 (7, N'[App].[usp_SysAdminInventory_CALC_Master]', NULL, 7, N'1|1|1|1|1|1|1', 1),
 (8, N'[App].[usp_ApplicationCleanup]', NULL, 8, N'1|1|1|1|1|1|1', 1),
 (9, N'[App].[usp_Cleanup_Job_History]', NULL, 9, N'1|1|1|1|1|1|1', 1),
-(10,'[App].[usp_DatabaseInventory_CALC_Master]',10,'1|1|1|1|1|1|1',1)
+(10,'[App].[usp_DatabaseInventory_CALC_Master]',NULL,10,'1|1|1|1|1|1|1',1),
+(11,'[App].[usp_DatabaseInventory_CALC_Master]',NULL,11,'1|1|1|1|1|1|1',1)
 
 SET IDENTITY_INSERT [Config].[Inventory] OFF
 
@@ -862,10 +863,11 @@ ALTER TABLE [Inventory].[sysconfigurations] ADD CONSTRAINT PK_sysconfigurations_
 
 END
 
+GO
+
 /* Table Upgrade Complete */
 
 RAISERROR('0.11 - Tables Created/Upgraded',0,1) WITH NOWAIT
-
 
 /*Create the views procedures */
 
@@ -932,6 +934,82 @@ FROM sys.master_files mf
 INNER JOIN sys.databases d ON d.database_id = mf.database_id
 WHERE d.database_id > 4
 GROUP BY d.NAME
+
+GO
+
+IF OBJECT_ID('[App].[vw_BackupInventory_CALC_Loading]') IS NULL
+BEGIN
+	
+	RAISERROR('9.0 - Creating/Upgrading Views',0,1) WITH NOWAIT
+
+	EXEC ('CREATE VIEW [App].[vw_BackupInventory_CALC_Loading] AS SELECT '''' as v')
+END
+GO
+
+RAISERROR('9.1 - Creating/Upgrading Views',0,1) WITH NOWAIT
+GO
+
+ALTER VIEW [App].[vw_BackupInventory_CALC_Loading]
+
+AS
+
+	SELECT 
+
+		GETDATE() as CensusDate
+		,CONVERT(CHAR(100), SERVERPROPERTY('Servername')) AS Server 
+		,CASE 
+			WHEN bkset.database_name IS NULL THEN 'No Backup Available'
+			ELSE 'Backup Available'
+		END AS backup_availability
+		,d.name
+		,bkset.database_version
+		,CASE 
+			WHEN bkset.database_version = 904 THEN 'SQL Server 2019 CTP 3.2 / RC 1 / RC 1.1 / RTM'
+			WHEN bkset.database_version = 902 THEN 'SQL Server 2019 CTP 3.0 / 3.1'
+			WHEN bkset.database_version = 897 THEN 'SQL Server 2019 CTP 2.3 / 2.4 / 2.5'
+			WHEN bkset.database_version = 896 THEN 'SQL Server 2019 CTP 2.1 / 2.2'
+			WHEN bkset.database_version = 895 THEN 'SQL Server 2019 CTP 2.0'
+			WHEN bkset.database_version = 868 THEN 'SQL Server 2017'
+			WHEN bkset.database_version = 869 THEN 'SQL Server 2017'
+			WHEN bkset.database_version = 852 THEN 'SQL Server 2016'
+			WHEN bkset.database_version = 782 THEN 'SQL Server 2014'
+			WHEN bkset.database_version = 706 THEN 'SQL Server 2012'
+			WHEN bkset.database_version = 684 THEN 'SQL Server 2012 CTP1'
+			WHEN bkset.database_version = 661 THEN 'SQL Server 2008 R2'
+			WHEN bkset.database_version = 660 THEN 'SQL Server 2008 R2'
+			WHEN bkset.database_version = 655 THEN 'SQL Server 2008'
+			WHEN bkset.database_version = 612 THEN 'SQL Server 2005 SP2+ with VarDecimal enabled'
+			WHEN bkset.database_version = 611 THEN 'SQL Server 2005'
+			WHEN bkset.database_version = 539 THEN 'SQL Server 2000'
+			WHEN bkset.database_version = 515 THEN 'SQL Server 7.0'
+			WHEN bkset.database_version = 408 THEN 'SQL Server 6.5'
+			WHEN bkset.database_version = 406 THEN 'SQL Server 6.0' 
+		END AS database_version_desc
+		,bkset.recovery_model
+		,is_copy_only
+		,is_damaged
+		,is_password_protected
+		,bkset.backup_start_date 
+		,bkset.backup_finish_date 
+		,CASE bkset.type 
+			WHEN 'D' THEN 'Database' 
+			WHEN 'L' THEN 'Log' 
+			WHEN 'I' THEN 'Differential database'
+		END AS backup_type
+		,bkset.backup_size 
+		,CAST(bkset.backup_size / 1048576 AS DECIMAL(10, 2) ) AS [BackupSizeMB]
+		,CAST(COALESCE(bkset.backup_size,0)/1024.00/1024.00/1024.00 AS NUMERIC(18,2))  AS [BackupSizeGB]
+		,bmf.physical_device_name
+		,bkset.name AS backupset_name
+		,bkset.user_name
+	FROM 
+		master.dbo.sysdatabases d
+
+	LEFT JOIN msdb.dbo.backupset bkset ON 
+		bkset.database_name = d.name
+
+	LEFT JOIN msdb.dbo.backupmediafamily bmf
+		ON bkset.media_set_id = bmf.media_set_id
 GO
 
 IF OBJECT_ID('[App].[vw_LoginInventory_CALC_Loading]') IS NULL
@@ -1883,7 +1961,7 @@ BEGIN
 		END CATCH
 END
 
---
+
 GO
 
 IF OBJECT_ID('[App].[usp_LoginInventory_CALC_Master]') IS NULL
@@ -1939,7 +2017,7 @@ BEGIN
 		END CATCH
 END
 
---
+
 
 GO
 
@@ -2023,7 +2101,7 @@ BEGIN
 		END CATCH
 END
 
---
+
 GO
 
 IF OBJECT_ID('[App].[usp_ObjectInventory_CALC_Master]') IS NULL
@@ -2079,7 +2157,7 @@ BEGIN
 		END CATCH
 END
 
---
+
 GO
 
 IF OBJECT_ID('[App].[usp_RunInventory]') IS NULL
@@ -2167,7 +2245,7 @@ BEGIN
 
 END
 
---
+
 GO
 
 IF OBJECT_ID('[App].[usp_SQLJobInventory_CALC_Insert]') IS NULL
@@ -2270,7 +2348,7 @@ BEGIN
 		END CATCH
 END
 
---
+
 GO
 
 IF OBJECT_ID('[App].[usp_SQLJobInventory_CALC_Master]') IS NULL
@@ -2326,7 +2404,7 @@ BEGIN
 		END CATCH
 END
 
---
+
 GO
 
 IF OBJECT_ID('[App].[usp_SQLJobInventory_CALC_Master]') IS NULL
@@ -2382,7 +2460,7 @@ BEGIN
 		END CATCH
 END
 
---
+
 GO
 
 IF OBJECT_ID('[App].[usp_SysAdminInventory_CALC_Insert]') IS NULL
@@ -2463,7 +2541,7 @@ BEGIN
 		END CATCH
 END
 
---
+
 GO
 
 IF OBJECT_ID('[App].[usp_SysAdminInventory_CALC_Master]') IS NULL
@@ -2518,7 +2596,7 @@ BEGIN
 
 		END CATCH
 END
-------SYSCONFIG INSERT VIEW
+
 GO
 
 IF OBJECT_ID('[App].[vw_SysConfigurations_CALC_Loading]') IS NULL
@@ -2551,7 +2629,7 @@ SELECT
 	,[is_advanced]
 FROM 
 	sys.configurations 
-------SYSCONFIG INSERT
+
 GO
 
 IF OBJECT_ID('[App].[usp_Sysconfigurations_CALC_Insert]') IS NULL
@@ -2666,6 +2744,162 @@ AS
 			BEGIN TRANSACTION
 
 				EXEC [App].[usp_SysConfigurations_CALC_Insert]
+
+			COMMIT TRANSACTION
+
+			END TRY
+			BEGIN CATCH
+			IF @@TRANCOUNT > 0 
+			ROLLBACK TRANSACTION
+			EXEC [App].[usp_InsertRunLog] @ProcedureName = @Me, @Action = 'ERROR'
+
+			INSERT INTO App.SQL_Errors ([Username], [Error_Number], [ERROR_STATE], [ERROR_SEVERITY], [ERROR_LINE], [stored_Procedure], [ERROR_MESSAGE], [EventDate])
+			VALUES
+			  (
+			  SUSER_SNAME(),
+			   ERROR_NUMBER(),
+			   ERROR_STATE(),
+			   ERROR_SEVERITY(),
+			   ERROR_LINE(),
+			   ERROR_PROCEDURE(),
+			   ERROR_MESSAGE(),
+			   GETDATE()
+			   );
+
+			END CATCH
+	END
+
+GO
+
+IF OBJECT_ID('[App].[usp_BackupInventory_CALC_Insert]') IS NULL
+BEGIN
+
+	RAISERROR('35.0 - Creating usp_BackupInventory_CALC_Insert',0,1) WITH NOWAIT
+
+	EXEC ('CREATE PROCEDURE [App].[usp_BackupInventory_CALC_Insert] AS RETURN 0;')
+END
+GO
+
+RAISERROR('35.1 - Amending usp_BackupInventory_CALC_Insert',0,1) WITH NOWAIT
+
+GO
+
+ALTER PROCEDURE [App].[usp_BackupInventory_CALC_Insert]
+
+AS
+
+	SET NOCOUNT ON;
+
+	BEGIN
+
+		DECLARE @Me VARCHAR(64) = CONCAT(OBJECT_SCHEMA_NAME(@@PROCID), '.',OBJECT_NAME(@@PROCID))
+
+		BEGIN TRY
+			
+			BEGIN TRANSACTION
+
+				EXEC [App].[usp_InsertRunLog] @ProcedureName = @Me, @Action = 'Inserting Data'
+
+				INSERT INTO  [Inventory].[Backups]	
+				(
+					[CensusDate], 
+					[Server], 
+					[backup_availability], 
+					[name], 
+					[database_version], 
+					[database_version_desc], 
+					[recovery_model], 
+					[is_copy_only], 
+					[is_damaged], 
+					[is_password_protected], 
+					[backup_start_date], 
+					[backup_finish_date], 
+					[backup_type], 
+					[backup_size], 
+					[BackupSizeMB], 
+					[BackupSizeGB], 
+					[physical_device_name], 
+					[backupset_name], 
+					[user_name]			
+				)
+				SELECT
+					[CensusDate], 
+					[Server], 
+					[backup_availability], 
+					[name], 
+					[database_version], 
+					[database_version_desc], 
+					[recovery_model], 
+					[is_copy_only], 
+					[is_damaged], 
+					[is_password_protected], 
+					[backup_start_date], 
+					[backup_finish_date], 
+					[backup_type], 
+					[backup_size], 
+					[BackupSizeMB], 
+					[BackupSizeGB], 
+					[physical_device_name], 
+					[backupset_name], 
+					[user_name]
+				FROM 
+					[App].[vw_BackupInventory_CALC_Loading]
+
+				EXEC [App].[usp_InsertRunLog] @ProcedureName = @Me, @Action = 'Data Inserted'
+
+			COMMIT TRANSACTION
+
+			END TRY
+			BEGIN CATCH
+				IF @@TRANCOUNT > 0 
+				ROLLBACK TRANSACTION
+				EXEC [App].[usp_InsertRunLog] @ProcedureName = @Me, @Action = 'ERROR'
+
+				INSERT INTO App.SQL_Errors ([Username], [Error_Number], [ERROR_STATE], [ERROR_SEVERITY], [ERROR_LINE], [stored_Procedure], [ERROR_MESSAGE], [EventDate])
+			VALUES
+			  (
+			  SUSER_SNAME(),
+			   ERROR_NUMBER(),
+			   ERROR_STATE(),
+			   ERROR_SEVERITY(),
+			   ERROR_LINE(),
+			   ERROR_PROCEDURE(),
+			   ERROR_MESSAGE(),
+			   GETDATE()
+			   );
+
+			END CATCH
+	END
+
+GO
+
+IF OBJECT_ID('[App].[usp_BackupInventory_CALC_Master]') IS NULL
+BEGIN
+
+	RAISERROR('36.0 - Creating usp_BackupInventory_CALC_Master',0,1) WITH NOWAIT
+
+	EXEC ('CREATE PROCEDURE [App].[usp_BackupInventory_CALC_Master] AS RETURN 0;')
+END
+GO
+
+RAISERROR('36.1 - Amending usp_BackupInventory_CALC_Master',0,1) WITH NOWAIT
+
+GO
+
+ALTER PROCEDURE [App].[usp_BackupInventory_CALC_Master]
+
+AS
+	SET NOCOUNT ON;
+
+	BEGIN
+
+		DECLARE @Me VARCHAR(64) = CONCAT(OBJECT_SCHEMA_NAME(@@PROCID), '.',OBJECT_NAME(@@PROCID))
+
+		BEGIN TRY
+			
+			BEGIN TRANSACTION
+
+				EXEC [App].[usp_BackupInventory_CALC_Insert]
 
 			COMMIT TRANSACTION
 
