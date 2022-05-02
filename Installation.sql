@@ -845,8 +845,9 @@ VALUES
 (7, N'[App].[usp_SysAdminInventory_CALC_Master]', NULL, 7, N'1|1|1|1|1|1|1', 1),
 (8, N'[App].[usp_ApplicationCleanup]', NULL, 8, N'1|1|1|1|1|1|1', 1),
 (9, N'[App].[usp_Cleanup_Job_History]', NULL, 9, N'1|1|1|1|1|1|1', 1),
-(10,'[App].[usp_DatabaseInventory_CALC_Master]',NULL,10,'1|1|1|1|1|1|1',1),
-(11,'[App].[usp_DatabaseInventory_CALC_Master]',NULL,11,'1|1|1|1|1|1|1',1)
+(10,'[App].[usp_BackupInventory_CALC_Master]',NULL,10,'1|1|1|1|1|1|1',1),
+(11,'[App].[usp_SysConfigurations_CALC_Master]',NULL,11,'1|1|1|1|1|1|1',1),
+(12,'[App].[usp_TraceFlagInventory_CALC_Master]',NULL,12,'1|1|1|1|1|1|1',1)
 
 SET IDENTITY_INSERT [Config].[Inventory] OFF
 
