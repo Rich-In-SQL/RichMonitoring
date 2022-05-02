@@ -1,4 +1,14 @@
-SET NOCOUNT ON
+/* 
+
+TABLE OF CONTENTS 
+
+-- 0.0 Database Creation
+
+
+*/
+
+
+SET NOCOUNT ON;
 
 Use [master]
 
@@ -22,8 +32,8 @@ DECLARE
 	@VersionDate DATE,
 	@Command nvarchar(MAX)
 
-SET @Version = '0.3'
-SET @VersionDate = '20220320'
+SET @Version = '2.0'
+SET @VersionDate = '20220502'
 
 /*Create Inventory Schema */
 IF SCHEMA_ID('Inventory') IS NULL
@@ -319,8 +329,6 @@ CREATE TABLE [Inventory].[Databases]
 ALTER TABLE [Inventory].[Databases] ADD CONSTRAINT [PK_Databases_ID_ID] PRIMARY KEY (ID);
 
 END
-
-/* [Inventory].[DatabaseSize] */
 
 IF OBJECT_ID('[Inventory].[DatabaseSize]') IS NOT NULL
 BEGIN
@@ -670,16 +678,16 @@ END
 IF OBJECT_ID('[Inventory].[SysAdmins]') IS NOT NULL
 BEGIN
 
-RAISERROR('8.0 - DatabaseFiles already exists',0,1) WITH NOWAIT
-RAISERROR('8.1 - Backing up existing DatabaseFiles data into DatabaseFiles_OldVersion',0,1)
+RAISERROR('8.0 - SysAdmins already exists',0,1) WITH NOWAIT
+RAISERROR('8.1 - Backing up existing SysAdmins data into SysAdmins_OldVersion',0,1)
 
 SELECT * INTO Inventory.SysAdmins_OldVersion FROM [Inventory].[SysAdmins]
 
-RAISERROR('8.2 - Dropping existing DatabaseFiles table',0,1) WITH NOWAIT
+RAISERROR('8.2 - Dropping existing SysAdmins table',0,1) WITH NOWAIT
 
 DROP TABLE [Inventory].[SysAdmins]
 
-RAISERROR('8.3 - Creating DatabaseFiles table',0,1) WITH NOWAIT
+RAISERROR('8.3 - Creating SysAdmins table',0,1) WITH NOWAIT
 
 CREATE TABLE [Inventory].[SysAdmins]
 (
@@ -728,6 +736,64 @@ CREATE TABLE [Inventory].[SysAdmins]
 )
 
 ALTER TABLE [Inventory].[SysAdmins] ADD CONSTRAINT PK_SysAdmins_ID PRIMARY KEY (ID)
+END
+
+IF OBJECT_ID('[Inventory].[TraceFlags]') IS NOT NULL
+BEGIN
+
+RAISERROR('8.0 - TraceFlags already exists',0,1) WITH NOWAIT
+RAISERROR('8.1 - Backing up existing TraceFlags data into TraceFlags_OldVersion',0,1)
+
+SELECT * INTO Inventory.TraceFlags_OldVersion FROM [Inventory].[TraceFlags]
+
+RAISERROR('8.2 - Dropping existing TraceFlags table',0,1) WITH NOWAIT
+
+DROP TABLE [Inventory].[TraceFlags]
+
+RAISERROR('8.3 - Creating TraceFlags table',0,1) WITH NOWAIT
+
+CREATE TABLE [Inventory].[TraceFlags]
+(
+	ID INT IDENTITY(1,1) NOT NULL,
+	CensusDate DATETIME DEFAULT GETDATE(),
+	[TraceFlag] INT,
+	[Status] BIT,
+	[Global] BIT,
+	[Session] BIT
+)
+
+ALTER TABLE [Inventory].[TraceFlags] ADD CONSTRAINT PK_TraceFlags_ID PRIMARY KEY (ID)
+
+RAISERROR('8.4 - Moving Data From Backup table to production table',0,1) WITH NOWAIT
+
+INSERT INTO [Inventory].[SysAdmins] ([TraceFlag],[Status],[Global],[Session])
+SELECT 
+[TraceFlag],[Status],[Global],[Session]
+FROM 
+[Inventory].[TraceFlags]
+
+RAISERROR('8.5 - Dropping TraceFlags_OldVersion as no longer required',0,1) WITH NOWAIT
+
+DROP TABLE Inventory.TraceFlags_OldVersion
+
+END
+ELSE
+BEGIN
+
+	RAISERROR('8.0 - Creating TraceFlags table',0,1) WITH NOWAIT
+
+	CREATE TABLE [Inventory].[TraceFlags]
+	(
+		ID INT IDENTITY(1,1) NOT NULL,
+		CensusDate DATETIME DEFAULT GETDATE(),
+		[TraceFlag] INT,
+		[Status] BIT,
+		[Global] BIT,
+		[Session] BIT
+	)
+
+	ALTER TABLE [Inventory].[TraceFlags] ADD CONSTRAINT PK_TraceFlags_ID PRIMARY KEY (ID)
+
 END
 
 RAISERROR('9.0 - Creating Configuration tables',0,1) WITH NOWAIT
@@ -791,9 +857,7 @@ INSERT [Config].[AppConfig] ([ID], [ConfigName], [ConfigDescription], [StringVal
 VALUES (1, N'Clean Up', N'The amout of days to keep records for', N'', -30, NULL, NULL, NULL, NULL, 1)
 SET IDENTITY_INSERT [Config].[AppConfig] OFF
 
-/* Sys Configurations */
-
-/* [Inventory].[SysConfigurations] */
+GO
 
 IF OBJECT_ID('[Inventory].[SysConfigurations]') IS NOT NULL
 BEGIN
@@ -865,11 +929,7 @@ END
 
 GO
 
-/* Table Upgrade Complete */
-
 RAISERROR('0.11 - Tables Created/Upgraded',0,1) WITH NOWAIT
-
-/*Create the views procedures */
 
 RAISERROR('0.12 - Creating/Upgrading Views',0,1) WITH NOWAIT
 
@@ -2713,7 +2773,6 @@ AS
 
 			END CATCH
 	END
-------SYSCONFIG MASTER
 
 GO
 
@@ -2900,6 +2959,119 @@ AS
 			BEGIN TRANSACTION
 
 				EXEC [App].[usp_BackupInventory_CALC_Insert]
+
+			COMMIT TRANSACTION
+
+			END TRY
+			BEGIN CATCH
+			IF @@TRANCOUNT > 0 
+			ROLLBACK TRANSACTION
+			EXEC [App].[usp_InsertRunLog] @ProcedureName = @Me, @Action = 'ERROR'
+
+			INSERT INTO App.SQL_Errors ([Username], [Error_Number], [ERROR_STATE], [ERROR_SEVERITY], [ERROR_LINE], [stored_Procedure], [ERROR_MESSAGE], [EventDate])
+			VALUES
+			  (
+			  SUSER_SNAME(),
+			   ERROR_NUMBER(),
+			   ERROR_STATE(),
+			   ERROR_SEVERITY(),
+			   ERROR_LINE(),
+			   ERROR_PROCEDURE(),
+			   ERROR_MESSAGE(),
+			   GETDATE()
+			   );
+
+			END CATCH
+	END
+
+GO
+
+IF OBJECT_ID('[App].[usp_TraceFlagInventory_CALC_Insert]') IS NULL
+BEGIN
+
+	RAISERROR('36.0 - Creating usp_TraceFlagInventory_CALC_Insert',0,1) WITH NOWAIT
+
+	EXEC ('CREATE PROCEDURE [App].[usp_TraceFlagInventory_CALC_Insert] AS RETURN 0;')
+END
+GO
+
+RAISERROR('36.1 - Amending usp_TraceFlagInventory_CALC_Insert',0,1) WITH NOWAIT
+
+GO
+
+ALTER PROCEDURE [App].[usp_TraceFlagInventory_CALC_Insert]
+
+AS
+
+BEGIN
+
+	SET NOCOUNT ON;
+
+	DECLARE @Me VARCHAR(64) = CONCAT(OBJECT_SCHEMA_NAME(@@PROCID), '.',OBJECT_NAME(@@PROCID))
+	DECLARE @CensusDate DATETIME = GETDATE()
+
+	BEGIN TRY
+
+		BEGIN TRANSACTION
+
+			INSERT INTO Inventory.TraceFlags(TraceFlag,Status,Global,Session) 
+			EXEC('DBCC TRACESTATUS(-1);')
+
+		COMMIT TRANSACTION
+
+	END TRY
+
+	BEGIN CATCH
+		IF @@TRANCOUNT > 0 
+		ROLLBACK TRANSACTION
+
+	EXEC [App].[usp_InsertRunLog] @ProcedureName = @Me, @Action = 'ERROR'
+
+	INSERT INTO App.SQL_Errors ([Username], [Error_Number], [ERROR_STATE], [ERROR_SEVERITY], [ERROR_LINE], [stored_Procedure], [ERROR_MESSAGE], [EventDate])
+	VALUES
+		(
+		SUSER_SNAME(),
+		ERROR_NUMBER(),
+		ERROR_STATE(),
+		ERROR_SEVERITY(),
+		ERROR_LINE(),
+		ERROR_PROCEDURE(),
+		ERROR_MESSAGE(),
+		GETDATE()
+		);
+
+	END CATCH
+END
+
+GO
+
+IF OBJECT_ID('[App].[usp_TraceFlagInventory_CALC_Master]') IS NULL
+BEGIN
+
+	RAISERROR('36.0 - Creating usp_TraceFlagInventory_CALC_Master',0,1) WITH NOWAIT
+
+	EXEC ('CREATE PROCEDURE [App].[usp_TraceFlagInventory_CALC_Master] AS RETURN 0;')
+END
+GO
+
+RAISERROR('36.1 - Amending usp_TraceFlagInventory_CALC_Master',0,1) WITH NOWAIT
+
+GO
+
+ALTER PROCEDURE [App].[usp_TraceFlagInventory_CALC_Master]
+
+AS
+	SET NOCOUNT ON;
+
+	BEGIN
+
+		DECLARE @Me VARCHAR(64) = CONCAT(OBJECT_SCHEMA_NAME(@@PROCID), '.',OBJECT_NAME(@@PROCID))
+
+		BEGIN TRY
+			
+			BEGIN TRANSACTION
+
+				EXEC [App].[usp_TraceFlagInventory_CALC_Insert]
 
 			COMMIT TRANSACTION
 
